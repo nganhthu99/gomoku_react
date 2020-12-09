@@ -25,7 +25,9 @@ const Home = (props) => {
     useEffect(() => {
         if (isAuthenticated) {
             const socket = io('https://caro-user-api-2.herokuapp.com?userName='
-                + localStorage.getItem("username"));
+                + localStorage.getItem("username"), {
+                transports: ['websocket']
+            });
             socket.on('connect', () => {
                 console.log(socket.id)
                 console.log(socket)
