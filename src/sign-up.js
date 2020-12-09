@@ -1,10 +1,11 @@
 import React, {useState} from 'react';
 import {Container, Form, Button, Card, Row} from "react-bootstrap";
 import axios from "axios";
-
-export const api = 'https://caro-admin-api.herokuapp.com'
+import { useHistory } from "react-router-dom";
+import {api} from "./sign-in";
 
 const SignUp = (props) => {
+    const history = useHistory()
     const [username, setUsername] = useState("")
     const [password, setPassword] = useState("")
 
@@ -17,26 +18,21 @@ const SignUp = (props) => {
     }
 
     const handleSignUpButton = () => {
-        // axios.get(api + '/users/check?username=' + username)
-        //     .then((response) => {
-        //         if (response.status === 200 && response.data.User.length === 0) {
-        //             axios.post(api + '/users/create', {
-        //                 username,
-        //                 password
-        //             })
-        //                 .then((response) => {
-        //                     alert('Signing Up Succeeds')
-        //                 })
-        //                 .catch((error) => {
-        //                     alert(error)
-        //                 })
-        //         } else {
-        //             alert('ERROR: Username existed')
-        //         }
-        //     })
-        //     .catch((error) => {
-        //         alert(error)
-        //     })
+        axios.post(api + '/users/signup', {
+            username,
+            password
+        })
+            .then((response) => {
+                if (response.status === 201 && response.data.success) {
+                    alert('Signing up succeeds')
+                    history.push('/sign-in')
+                } else if (!response.data.success) {
+                    alert('Username already existed')
+                }
+            })
+            .catch((error) => {
+                alert('Error signing up. Please try again later')
+            })
     }
 
     return (
