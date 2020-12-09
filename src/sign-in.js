@@ -136,11 +136,14 @@ const SignIn = (props) => {
                 </Form>
                 <Row style={{justifyContent: 'space-evenly', paddingTop: 20, alignItems: 'center'}}>
                     <GoogleLogin
+                        style={{textAlign:"center",width:"300px"}}
                         clientId="373788081790-9ukqs91r6ofjfvkggh2ea9ul9p3oisji.apps.googleusercontent.com"
                         buttonText='LOGIN WITH GOOGLE'
                         onSuccess={responseGoogle}
+                        onFailure={(error) => {alert(error)}}
                     />
                     <FacebookLogin
+                        style={{textAlign:"center",width:"300px"}}
                         appId="2439172963055789"
                         icon="fa-facebook"
                         size='small'
