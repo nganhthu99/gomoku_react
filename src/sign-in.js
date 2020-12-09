@@ -3,8 +3,9 @@ import {Container, Form, Button, Card, Row} from "react-bootstrap";
 import GoogleLogin from "react-google-login";
 import FacebookLogin from 'react-facebook-login';
 import { useHistory } from "react-router-dom";
+import axios from "axios";
 
-export const api = 'https://caro-admin-api.herokuapp.com/'
+export const api = 'https://caro-user-api-2.herokuapp.com'
 
 const SignIn = (props) => {
     const history = useHistory()
@@ -20,7 +21,22 @@ const SignIn = (props) => {
     }
 
     const handleSignInButton = () => {
-
+        axios.post(api + '/users/signin', {
+            username,
+            password
+        })
+            .then((response) => {
+                if (response.status === 200 && response.data.success) {
+                    localStorage.setItem("token", response.data.token)
+                    localStorage.setItem("username", username)
+                    history.push('/')
+                } else if (!response.data.success) {
+                    alert('Wrong username or password!')
+                }
+            })
+            .catch((error) => {
+                alert ('Error signing in. Please try again later')
+            })
     }
 
     const handleSignUpButton = () => {
@@ -29,11 +45,67 @@ const SignIn = (props) => {
 
     const responseGoogle = (response) => {
         const user = response.profileObj
-        console.log(user)
+        axios.post(api + '/users/signup', {
+            username: user.name,
+            password: "default"
+        })
+            .then((response) => {
+                if (response.status === 201 && response.data.success) {
+                    axios.post(api + '/users/signin', {
+                        username: user.name,
+                        password: "default"
+                    })
+                        .then((response) => {
+                            if (response.status === 200 && response.data.success) {
+                                localStorage.setItem("token", response.data.token)
+                                localStorage.setItem("username", user.name)
+                                history.push('/')
+                            } else if (!response.data.success) {
+                                alert ('Error signing in. Please try again later')
+                            }
+                        })
+                        .catch((error) => {
+                            alert ('Error signing in. Please try again later')
+                        })
+                } else {
+                    alert ('Error signing in. Please try again later')
+                }
+            })
+            .catch((error) => {
+                alert ('Error signing in. Please try again later')
+            })
     }
 
-    const responseFacebook = (response) => {
-        console.log(response)
+    const responseFacebook = (user) => {
+        axios.post(api + '/users/signup', {
+            username: user.name,
+            password: "default"
+        })
+            .then((response) => {
+                if (response.status === 201 && response.data.success) {
+                    axios.post(api + '/users/signin', {
+                        username: user.name,
+                        password: "default"
+                    })
+                        .then((response) => {
+                            if (response.status === 200 && response.data.success) {
+                                localStorage.setItem("token", response.data.token)
+                                localStorage.setItem("username", user.name)
+                                history.push('/')
+                            } else if (!response.data.success) {
+                                alert ('Error signing in. Please try again later')
+                            }
+                        })
+                        .catch((error) => {
+                            alert ('Error signing in. Please try again later')
+                        })
+                } else {
+                    alert ('Error signing in. Please try again later')
+                }
+            })
+            .catch((error) => {
+                alert ('Error signing in. Please try again later')
+            })
     }
 
     return (
