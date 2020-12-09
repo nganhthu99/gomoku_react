@@ -20,47 +20,27 @@ const UserItem = (props) => {
 const Home = (props) => {
     const [userList, setUserList] = useState([])
     const [isAuthenticated, setIsAuthenticated] = useState(localStorage.getItem("token"))
+    const history = useHistory()
 
     useEffect(() => {
-        const socket = io('https://caro-user-api-2.herokuapp.com?userName='
-            + localStorage.getItem("username"));
-        socket.on('connect', () => {
-            console.log(socket.id)
-            console.log(socket)
-        })
-        socket.on('Online-users', (data) => {
-            console.log(socket.id)
-            console.log(socket)
-            console.log(data)
-            setUserList(data["Online"])
-        });
-        return () => {
-            socket.disconnect()
+        if (isAuthenticated) {
+            const socket = io('https://caro-user-api-2.herokuapp.com?userName='
+                + localStorage.getItem("username"));
+            socket.on('connect', () => {
+                console.log(socket.id)
+                console.log(socket)
+            })
+            socket.on('Online-users', (data) => {
+                console.log(socket.id)
+                console.log(socket)
+                console.log(data)
+                setUserList(data["Online"])
+            });
+            return () => {
+                socket.disconnect()
+            }
         }
-    }, [])
-
-    // const [socket, setSocket] = useState(null);
-    //
-    // useEffect(() => {
-    //     setSocket(io('https://caro-user-api-2.herokuapp.com?userName='
-    //         + localStorage.getItem("username")));
-    //     socket.on('connect', () => {
-    //         console.log(socket.id)
-    //         console.log(socket)
-    //     })
-    //     return () => {
-    //         if (!socket) socket.close()
-    //     }
-    // }, []);
-    //
-    // useEffect(() => {
-    //     if (!socket) return;
-    //     socket.on('Online-users', (data) => {
-    //         setUserList(data["Online"]);
-    //     });
-    // }, [socket]);
-
-    const history = useHistory()
+    }, [isAuthenticated])
 
     const handleSignInButton = () => {
         history.push('/sign-in')
