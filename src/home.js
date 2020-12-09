@@ -49,6 +49,7 @@ const Home = (props) => {
     const handleSignOutButton = () => {
         localStorage.clear()
         setIsAuthenticated(localStorage.getItem("token"))
+        setUserList([])
     }
 
     return (
