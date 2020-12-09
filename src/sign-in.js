@@ -110,7 +110,7 @@ const SignIn = (props) => {
 
     return (
         <Container>
-            <Card style={{backgroundColor: '#F27405', padding: 20, margin: 30, height: 400}}>
+            <Card style={{backgroundColor: '#F27405', padding: 20, margin: 30, height: 320}}>
                 <Form style={{alignItems: 'center', justifyContent: 'center'}}>
                     <Form.Group>
                         <Form.Label style={{color: '#F2F2F2'}}>Username</Form.Label>
@@ -134,22 +134,22 @@ const SignIn = (props) => {
                         </Button>
                     </Row>
                 </Form>
-                <Row style={{justifyContent: 'space-evenly', paddingTop: 20, alignItems: 'center'}}>
-                    <GoogleLogin
-                        style={{textAlign:"center",width:"300px"}}
-                        clientId="373788081790-9ukqs91r6ofjfvkggh2ea9ul9p3oisji.apps.googleusercontent.com"
-                        buttonText='LOGIN WITH GOOGLE'
-                        onSuccess={responseGoogle}
-                        onFailure={(error) => {alert(error)}}
-                    />
-                    <FacebookLogin
-                        style={{textAlign:"center",width:"300px"}}
-                        appId="2439172963055789"
-                        icon="fa-facebook"
-                        size='small'
-                        callback={responseFacebook}
-                    />
-                </Row>
+                {/*<Row style={{justifyContent: 'space-evenly', paddingTop: 20, alignItems: 'center'}}>*/}
+                {/*    <GoogleLogin*/}
+                {/*        style={{textAlign:"center",width:"300px"}}*/}
+                {/*        clientId="373788081790-9ukqs91r6ofjfvkggh2ea9ul9p3oisji.apps.googleusercontent.com"*/}
+                {/*        buttonText='LOGIN WITH GOOGLE'*/}
+                {/*        onSuccess={responseGoogle}*/}
+                {/*        onFailure={(error) => {alert(error)}}*/}
+                {/*    />*/}
+                {/*    <FacebookLogin*/}
+                {/*        style={{textAlign:"center",width:"300px"}}*/}
+                {/*        appId="2439172963055789"*/}
+                {/*        icon="fa-facebook"*/}
+                {/*        size='small'*/}
+                {/*        callback={responseFacebook}*/}
+                {/*    />*/}
+                {/*</Row>*/}
             </Card>
         </Container>
     )
