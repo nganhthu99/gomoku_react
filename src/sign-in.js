@@ -139,7 +139,6 @@ const SignIn = (props) => {
                         clientId="373788081790-9ukqs91r6ofjfvkggh2ea9ul9p3oisji.apps.googleusercontent.com"
                         buttonText='LOGIN WITH GOOGLE'
                         onSuccess={responseGoogle}
-                        onFailure={responseGoogle}
                     />
                     <FacebookLogin
                         appId="2439172963055789"
