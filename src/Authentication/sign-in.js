@@ -5,7 +5,7 @@ import FacebookLogin from 'react-facebook-login';
 import { useHistory } from "react-router-dom";
 import axios from "axios";
 
-export const api = 'https://caro-user-api-2.herokuapp.com'
+export const api = 'http://localhost:5034'
 
 const SignIn = (props) => {
     const history = useHistory()
