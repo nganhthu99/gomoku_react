@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {Container, Form, Button, Card, Row} from "react-bootstrap";
+import {Container, Form, Button, Card, Row, Col} from "react-bootstrap";
 import axios from "axios";
 import { useHistory } from "react-router-dom";
 import {api} from "./sign-in";
@@ -36,27 +36,29 @@ const SignUp = (props) => {
     }
 
     return (
-        <Container>
-            <Card style={{backgroundColor: '#F27405', padding: 20, margin: 30, height: 300}}>
-                <Form>
-                    <Form.Group>
-                        <Form.Label style={{color: '#F2F2F2'}}>Username</Form.Label>
-                        <Form.Control onChange={(e) => handleOnChangeUsername(e)}/>
-                    </Form.Group>
-                    <Form.Group>
-                        <Form.Label style={{color: '#F2F2F2'}}>Password</Form.Label>
-                        <Form.Control type="password"
-                                      onChange={(e) => handleOnChangePassword(e)}/>
-                    </Form.Group>
-                    <Row style={{justifyContent: 'center', paddingTop: 30}}>
-                        <Button
-                            onClick={handleSignUpButton}
-                            style={{backgroundColor: '#F2F2F2', color: '#F27405', width: 200}}>Sign Up
-                        </Button>
-                    </Row>
-                </Form>
-            </Card>
-        </Container>
+        <Row style={{justifyContent: 'center'}}>
+            <Col md={6} sx={8}>
+                <Card style={{backgroundColor: '#F27405', padding: 20, margin: 30, height: 300}}>
+                    <Form>
+                        <Form.Group>
+                            <Form.Label style={{color: '#F2F2F2'}}>Username</Form.Label>
+                            <Form.Control onChange={(e) => handleOnChangeUsername(e)}/>
+                        </Form.Group>
+                        <Form.Group>
+                            <Form.Label style={{color: '#F2F2F2'}}>Password</Form.Label>
+                            <Form.Control type="password"
+                                          onChange={(e) => handleOnChangePassword(e)}/>
+                        </Form.Group>
+                        <Row style={{justifyContent: 'center', paddingTop: 30}}>
+                            <Button
+                                onClick={handleSignUpButton}
+                                style={{backgroundColor: '#F2F2F2', color: '#F27405', width: 200}}>Sign Up
+                            </Button>
+                        </Row>
+                    </Form>
+                </Card>
+            </Col>
+        </Row>
     )
 };
 
