@@ -1,68 +1,142 @@
-import React, {useEffect, useState} from "react";
+import React, {useContext, useEffect, useState} from "react";
 import {calculateWinner} from "./game-service";
 import Board from "./board";
 import {Button, Card, FormControl, Navbar, Row, Col} from "react-bootstrap";
 import queryString from 'query-string';
-import {socket} from "../Home/home";
+import {Redirect} from "react-router-dom";
+import {SocketContext} from "../socket-provider";
+
+export const boardSize = 15
 
 const Game = ({location}) => {
-    const boardSize = 15
+    const {socket} = useContext(SocketContext)
+    const [isAuthenticated, setIsAuthenticated] = useState(localStorage.getItem("token"))
+    const [turn, setTurn] = useState({
+        isYourTurn: true,
+        letter: null
+    })
     const [history, setHistory] = useState([
         {
             squares: Array(boardSize * boardSize).fill(null), //check
             step: Array(2).fill(null)
         }
     ])
-    const [isYourTurn, setIsXTurn] = useState(true)
     const [stepNumber, setStepNumber] = useState(0)
     const [result, setResult] = useState({status: undefined, line: []})
     const [players, setPlayers] = useState([])
     const [room, setRoom] = useState(null)
     const [messages, setMessages] = useState([])
     const [chatMessage, setChatMessage] = useState('')
-    //
+
     useEffect(() => {
         socket.emit('In-room', (queryString.parse(location.search)).room)
-    }, [location])
+    }, [socket, location])
 
     useEffect(() => {
         socket.on('Room-Data', (data) => {
+            if (data['players'].length < 2) {
+                setHistory([
+                    {
+                        squares: Array(boardSize * boardSize).fill(null), //check
+                        step: Array(2).fill(null)
+                    }
+                ])
+                setResult({status: undefined, line: []})
+            }
+
             setPlayers(data['players'])
             setRoom(data['room'])
-            setIsXTurn(data['players'][0] === localStorage.getItem('username'))
+            setTurn({
+                isYourTurn: data['players'][0] === localStorage.getItem('username'),
+                letter: data['players'][0] === localStorage.getItem('username') ? 'X' : 'O'
+            })
         })
 
         socket.on('Get-Message', (data) => {
-            setMessages(msgs => [ ...msgs, data ]);
+            setMessages(prevMessages => [ ...prevMessages, data ]);
         })
 
         socket.on('Get-Move', (data) => {
-
+            const i = data.move
+            setHistory(prevHistory => {
+                let current = prevHistory[prevHistory.length - 1]
+                let squares = current.squares.slice()
+                squares[i] = data.letter
+                return [...prevHistory, {
+                    squares: squares,
+                    step: [Math.floor(i / boardSize), i % boardSize]
+                }]
+            })
+            setTurn ((prevTurn) => {
+                return {
+                    letter: prevTurn.letter,
+                    isYourTurn: !prevTurn.isYourTurn
+                }
+            })
+            setStepNumber(s => s + 1)
         })
-    }, [])
+
+        socket.on('Undo-Move', (index) => {
+            setTurn(prevTurn => {
+                let isYourTurn
+                if (index === 0 || index % 2 === 0) {
+                    isYourTurn = prevTurn.letter === 'X';
+                } else {
+                    isYourTurn = prevTurn.letter !== 'X';
+                }
+                return {
+                    isYourTurn: isYourTurn,
+                    letter: prevTurn.letter
+                }
+            })
+            setStepNumber(index)
+            setHistory(prevHistory => prevHistory.slice(0, index + 1))
+        })
+    }, [socket])
 
     useEffect(() => {
         let copyHistory = history.slice()
         let current = copyHistory[stepNumber]
         let squares = current.squares.slice()
         let step = current.step.slice()
-        setResult(calculateWinner(squares, step, boardSize, (isYourTurn ? 'O' : 'X')))
-    }, [history, isYourTurn, stepNumber])
 
-    // helper functions declare
+        const letterState = () => {
+            if (turn.isYourTurn) {
+                if (turn.letter === 'X') return 'O'
+                else return 'X'
+            } else {
+                if (turn.letter === 'X') return 'X'
+                else return 'O'
+            }
+        }
+        setResult(calculateWinner(squares, step, boardSize, letterState()))
+    }, [history, turn, stepNumber])
+
+    const handleSignOutButton = () => {
+        socket.disconnect()
+        localStorage.clear()
+        setIsAuthenticated(localStorage.getItem("token"))
+    }
+
     const handleClick = (i) => {
-        let copyHistory = history.slice(0, stepNumber + 1)
+        let copyHistory = history.slice()
         let current = copyHistory[copyHistory.length - 1]
         let squares = current.squares.slice()
         let step = current.step.slice() //check
-        if (squares[i] ||
 
-            calculateWinner(squares, step, boardSize, (isYourTurn ? 'O' : 'X')).status)
+        if (!(players.length === 2) ||
+            !turn.isYourTurn ||
+            squares[i] ||
+            calculateWinner(squares, step, boardSize, (turn.letter === 'X' ? 'O' : 'X')).status)
             return
+        socket.emit('Play-Move', {
+            move: i,
+            letter: turn.letter
+        })
     }
 
     /*const handleClick = (i) => {
-        let copyHistory = history.slice(0, stepNumber + 1)
+        let copyHistory = history.slice()
         let current = copyHistory[copyHistory.length - 1]
         let squares = current.squares.slice()
         let step = current.step.slice() //check
@@ -72,14 +146,13 @@ const Game = ({location}) => {
         setHistory(copyHistory.concat({
             squares: squares,
             step: [Math.floor(i / boardSize), i % boardSize]
-        }),)
+        }))
         setIsXTurn(!isXTurn)
-        setStepNumber(copyHistory.length)
+        setStepNumber(stepNumber + 1)
     }*/
 
     const jumpTo = (index) => {
-        setIsXTurn(index % 2 === 0)
-        setStepNumber(index)
+        socket.emit('Undo-Move', index)
     }
 
     const handleChat = (e) => {
@@ -87,24 +160,6 @@ const Game = ({location}) => {
         socket.emit('Send-Message', chatMessage);
         setChatMessage('');
     }
-
-    // let copyHistory = history.slice()
-    // let current = copyHistory[stepNumber]
-    // let squares = current.squares.slice()
-    // let step = current.step.slice()
-    //
-    // let status
-    // let line = []
-    // let result = calculateWinner(squares, step, boardSize, (isXTurn ? 'O' : 'X')) //check
-    //
-    // if (result) {
-    //     status = 'Winner: ' + result.winner
-    //     line = result.line
-    // } else if (checkBoardFull(squares)) {
-    //     status = 'Result is a draw!'
-    // } else {
-    //     status = 'Next player: ' + ((isXTurn) ? 'X' : 'O');
-    // }
 
     const historyMoves = () => {
         return (
@@ -137,15 +192,29 @@ const Game = ({location}) => {
         )
     }
 
-    return (
+    const letterState = () => {
+        if (turn.isYourTurn) {
+            if (turn.letter === 'X')
+                return 'X'
+            else return 'O'
+        } else {
+            if (turn.letter === 'X')
+                return 'O'
+            else return 'X'
+        }
+    }
+
+    if (!isAuthenticated)
+        return (
+            <Redirect to='/'/>
+        )
+    else return (
         <>
             <Navbar style={{backgroundColor: '#F27405', justifyContent: 'space-around'}}>
                 <Navbar.Brand style={{color: '#F2F2F2', fontWeight: 'bold', flexGrow: 1}}>GOMOKU</Navbar.Brand>
                 <Row style={{marginRight: 10}}>
-                    <Button style={{backgroundColor: '#F2F2F2', color: '#F27405', width: 100}}>
-                        Sign In
-                    </Button>
-                    <Button style={{backgroundColor: '#F2F2F2', color: '#F27405', width: 100}}>
+                    <Button style={{backgroundColor: '#F2F2F2', color: '#F27405', width: 100}}
+                            onClick={handleSignOutButton}>
                         Sign Out
                     </Button>
                 </Row>
@@ -158,17 +227,23 @@ const Game = ({location}) => {
                            boardSize={boardSize}/>
                 </Col>
                 <Col md={6}>
-                    <h5 style={{textAlign: 'center'}}>
-                        {result.status === undefined && 'Next player: ' + ((isYourTurn) ? 'X' : 'O')}
-                        {result.status === 'draw' && 'Result is a draw!'}
-                        {(result.status === 'X' || result.status === 'O') && 'Winner: ' + result.status}
-                    </h5>
-                    <Row>
-                        <Col xs={4}>
+                    {result.status === undefined && (<h5 style={{textAlign: 'center'}}>Next player: {letterState()}</h5>)}
+                    {result.status === 'draw' && (<h5 style={{textAlign: 'center'}}>Result is a draw!</h5>)}
+                    {(result.status === 'X' || result.status === 'O') && (
+                        <Row noGutters style={{justifyContent: 'center'}}>
+                            <h5 style={{textAlign: 'center'}}>
+                                Winner: {result.status}
+                            </h5>
+                            <Button variant='clear' style={{fontSize: 13, color: 'blue', paddingTop: 0}} onClick={() => jumpTo(0)}>Restart Game</Button>
+                        </Row>
+                    )}
+
+                    <Row noGutters>
+                        <Col xs={3}>
                             <h6>{`Room ID: ${room}`}</h6>
                         </Col>
-                        <Col xs={8}>
-                            <h6>{`Players: ${players[0]} versus ${players[1]}`}</h6>
+                        <Col xs={9}>
+                            <h6>{`Players: [X]${players[0]}[X] versus [O]${players[1]}[O]`}</h6>
                         </Col>
                     </Row>
                     <Card className='card-history'>
@@ -196,7 +271,6 @@ const Game = ({location}) => {
                                              className='input-message'
                                              placeholder='Type and enter message'
                                              value={chatMessage}
-                                             // disabled={needToDisable}
                                              onChange={e => setChatMessage(e.target.value)}>
                                 </FormControl>
                             </form>
