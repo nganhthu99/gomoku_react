@@ -1,9 +1,9 @@
-import React, {useEffect, useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {Button, Card, Col, Navbar, Row, Modal, FormControl} from "react-bootstrap";
-import {Link, useHistory} from "react-router-dom";
-import { io } from 'socket.io-client';
+import {Redirect, useHistory} from "react-router-dom";
 import { FaPlusCircle } from 'react-icons/fa';
 import randomColor from 'randomcolor'
+import {SocketContext} from "../socket-provider";
 
 export const UserItem = (props) => {
     return (
@@ -42,12 +42,10 @@ export const RoomItem = (props) => {
     )
 }
 
-export const ENDPOINT='http://localhost:5034?username='
-export const socket = io(ENDPOINT + localStorage.getItem("username"), {
-    transports: ['websocket']
-});
+export const ENDPOINT='https://caro-user-api-2.herokuapp.com?username='
 
 const Home = (props) => {
+    const {socket} = useContext(SocketContext)
     const [userList, setUserList] = useState([])
     const [roomList, setRoomList] = useState([])
     const [isAuthenticated, setIsAuthenticated] = useState(localStorage.getItem("token"))
@@ -56,10 +54,6 @@ const Home = (props) => {
     const [roomId, setRoomId] = useState('')
 
     useEffect(() => {
-        if (isAuthenticated) {
-            // socket = io(ENDPOINT + localStorage.getItem("username"), {
-            //     transports: ['websocket']
-            // });
             socket.on('connect', () => {
                 console.log(socket.id)
             })
@@ -72,21 +66,12 @@ const Home = (props) => {
             // return () => {
             //     socket.disconnect()
             // }
-            // socket.on('Room-Data', (data) => {
-            //     console.log(data)
-            //     // setPlayers(data['Players'])
-            // })
-        }
-    }, [isAuthenticated])
-
-    const handleSignInButton = () => {
-        history.push('/sign-in')
-    }
+    }, [socket])
 
     const handleSignOutButton = () => {
+        socket.disconnect()
         localStorage.clear()
         setIsAuthenticated(localStorage.getItem("token"))
-        setUserList([])
     }
 
     const handleClose = () => {
@@ -118,18 +103,16 @@ const Home = (props) => {
         });
     }
 
-    return (
+    if (!isAuthenticated)
+        return (
+            <Redirect to='/'/>
+        )
+    else return (
         <>
             <Navbar style={{backgroundColor: '#F27405', justifyContent: 'space-around'}}>
                 <Navbar.Brand style={{color: '#F2F2F2', fontWeight: 'bold', flexGrow: 1}}>GOMOKU</Navbar.Brand>
                 <Row style={{marginRight: 10}}>
                     <Button style={{backgroundColor: '#F2F2F2', color: '#F27405', width: 100}}
-                            disabled={isAuthenticated ? true : false}
-                            onClick={handleSignInButton}>
-                        Sign In
-                    </Button>
-                    <Button style={{backgroundColor: '#F2F2F2', color: '#F27405', width: 100}}
-                            disabled={isAuthenticated ? false : true}
                             onClick={handleSignOutButton}>
                         Sign Out
                     </Button>
